@@ -2,3 +2,7 @@
 state.dryrun.json
 run*.log
 *.log
+
+# python
+__pycache__/
+*.pyc
