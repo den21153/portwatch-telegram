@@ -1,6 +1,9 @@
 name: PortWatch VI to Telegram
 
 on:
+  # Any change to the repository also runs a check, so edits test themselves.
+  push:
+    branches: [main]
   # Every 20 minutes. GitHub may start a scheduled run a few minutes late; the
   # site itself refreshes every 3 hours, so that is fine.
   schedule:
