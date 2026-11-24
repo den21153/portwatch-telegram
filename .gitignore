@@ -1,0 +1,4 @@
+# local test leftovers
+state.dryrun.json
+run*.log
+*.log

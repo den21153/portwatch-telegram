@@ -1,0 +1,44 @@
+name: PortWatch VI to Telegram
+
+on:
+  # Every 20 minutes. GitHub may start a scheduled run a few minutes late; the
+  # site itself refreshes every 3 hours, so that is fine.
+  schedule:
+    - cron: "*/20 * * * *"
+  # Lets you run it by hand from the Actions tab (useful for the first test).
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: portwatch-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Read the feed and send new items
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python feedbot.py
+
+      - name: Remember what was already sent
+        run: |
+          git config user.name "portwatch-bot"
+          git config user.email "portwatch-bot@users.noreply.github.com"
+          git add state.json
+          if git diff --cached --quiet; then
+            echo "state unchanged"
+          else
+            git commit -m "state: $(date -u +%FT%TZ)"
+            git push
+          fi
