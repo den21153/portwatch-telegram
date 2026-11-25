@@ -76,7 +76,21 @@ def translate_chunk(text: str) -> str:
     )
     raw = fetch(f"https://translate.googleapis.com/translate_a/single?{query}")
     data = json.loads(raw)
-    return "".join(part[0] for part in data[0] if part and part[0])
+    result = "".join(part[0] for part in data[0] if part and part[0])
+    if not result.strip():
+        raise RuntimeError("empty translation")
+    return result
+
+
+def translate_chunk_backup(text: str) -> str:
+    """Second free provider, used when Google throttles a burst of requests."""
+    query = urllib.parse.urlencode({"q": text, "langpair": "en|ru"})
+    raw = fetch(f"https://api.mymemory.translated.net/get?{query}")
+    data = json.loads(raw)
+    result = html.unescape(((data.get("responseData") or {}).get("translatedText") or "")).strip()
+    if not result or "MYMEMORY WARNING" in result.upper() or "QUERY LENGTH LIMIT" in result.upper():
+        raise RuntimeError("backup translator refused")
+    return result
 
 
 def split_for_translation(text: str, limit: int = 900) -> list[str]:
@@ -95,24 +109,33 @@ def split_for_translation(text: str, limit: int = 900) -> list[str]:
 
 
 def translate(text: str) -> str:
-    """English -> Russian; returns the original text if translation fails."""
+    """English -> Russian. Google first, a second free provider next, the
+    original text as the last resort."""
     text = (text or "").strip()
     if not text:
         return text
     if text in _TRANSLATIONS:
         return _TRANSLATIONS[text]
-    result = text
-    for attempt in range(2):
-        try:
-            time.sleep(0.4)  # the public endpoint throttles bursts
-            result = " ".join(translate_chunk(chunk) for chunk in split_for_translation(text))
-            result = result.strip() or text
-            break
-        except Exception as error:  # noqa: BLE001 - translation is best effort
-            print(f"translate attempt {attempt + 1} failed: {error}", file=sys.stderr)
-            time.sleep(1.5)
-    _TRANSLATIONS[text] = result
-    return result
+
+    for provider in (translate_chunk, translate_chunk_backup):
+        for attempt in range(2):
+            try:
+                time.sleep(1.0)  # the public endpoints throttle bursts
+                result = " ".join(
+                    provider(chunk) for chunk in split_for_translation(text)
+                ).strip()
+                if result:
+                    _TRANSLATIONS[text] = result
+                    return result
+            except Exception as error:  # noqa: BLE001 - translation is best effort
+                print(
+                    f"{provider.__name__} attempt {attempt + 1} failed: {error}",
+                    file=sys.stderr,
+                )
+                time.sleep(1.5)
+
+    _TRANSLATIONS[text] = text
+    return text
 
 
 def parse_feed(raw: bytes) -> list[dict]:
