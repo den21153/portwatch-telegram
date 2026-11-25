@@ -1,6 +1,7 @@
 {
   "initialized": true,
   "seen": [
+    "https://portwatch-vi.xyz/news/2026-11-25-zettrox-no-crashes",
     "https://portwatch-vi.xyz/news/2026-11-25-prologue-gone-fishing",
     "https://portwatch-vi.xyz/news/2026-11-24-take-two-dmca-leonida-forks",
     "https://portwatch-vi.xyz/news/2026-11-24-new-progress-scale",
@@ -24,6 +25,7 @@
     "https://portwatch-vi.xyz/news/2026-11-16-kurtaj-plea"
   ],
   "changes": [
+    "e8e40fb61dd95ab5",
     "f5de1a1051bb57b4",
     "8625c8feead5f974",
     "5b2d0b53cdc1c2d8",
