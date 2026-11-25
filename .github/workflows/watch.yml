@@ -34,9 +34,6 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python feedbot.py
 
-      - name: Translation probe
-        run: python -c "import feedbot; print('PROBE:', feedbot.translate('Does GTA VI run on PC yet? main menu reached.'))"
-
       - name: Remember what was already sent
         run: |
           git config user.name "portwatch-bot"
