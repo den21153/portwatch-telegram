@@ -34,6 +34,19 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python feedbot.py
 
+      - name: Translation providers check
+        run: |
+          python - <<'PY'
+          import feedbot
+          text = "DexNom takes #1 at 78%: ray-traced lighting works at 3-5 fps."
+          for name, fn in (("google", feedbot.translate_chunk),
+                           ("backup", feedbot.translate_chunk_backup)):
+              try:
+                  print(f"{name}: {fn(text)}")
+              except Exception as error:
+                  print(f"{name}: FAILED {type(error).__name__}: {error}")
+          PY
+
       - name: Remember what was already sent
         run: |
           git config user.name "portwatch-bot"
