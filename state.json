@@ -1,6 +1,7 @@
 {
   "initialized": true,
   "seen": [
+    "https://portwatch-vi.xyz/news/2026-11-25-belobug-way-ahead",
     "https://portwatch-vi.xyz/news/2026-11-25-zettrox-no-crashes",
     "https://portwatch-vi.xyz/news/2026-11-25-prologue-gone-fishing",
     "https://portwatch-vi.xyz/news/2026-11-24-take-two-dmca-leonida-forks",
@@ -184,7 +185,10 @@
     "7a0f29f7aebde957",
     "40c17b5f851f2f02",
     "9cc0d151427fc0cc",
-    "0b9c1211642c46d3"
+    "0b9c1211642c46d3",
+    "4f2a88bb32bfd9dd",
+    "a062e598a3c30858",
+    "d8ad99b75548ed0d"
   ],
   "dmca": [
     "https://github.com/github/dmca/blob/master/2026/11/2026-11-24-take-two.md",
