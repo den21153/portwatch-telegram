@@ -155,6 +155,9 @@ def save_state(state: dict) -> None:
 
 
 def send(text: str) -> None:
+    # A short preview in the workflow log makes it obvious what language a
+    # message went out in, without exposing the whole text.
+    print("[send] " + text.replace("\n", " ")[:100])
     if DRY_RUN:
         print("--- would send ---")
         print(text)
