@@ -29,6 +29,7 @@ import time
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta, timezone
 
 FEED_URL = "https://portwatch-vi.xyz/news/feed.xml"
 TRACKER_URL = "https://portwatch-vi.xyz/data/tracker.json"
@@ -168,6 +169,8 @@ def load_state() -> dict:
     data.setdefault("changes", [])
     data.setdefault("dmca", [])
     data.setdefault("exeStatus", "")
+    data.setdefault("pendingCandidates", [])
+    data.setdefault("digestDate", "")
     return data
 
 
@@ -262,13 +265,15 @@ def tracker_messages(state: dict, tracker: dict) -> list[str]:
         )
 
     if candidates:
-        messages.extend(
-            pack_messages(
-                f"<b>PortWatch: новые кандидаты ({len(candidates)})</b>",
-                [f"• {esc(name)}" for name in candidates],
-                f"{SITE_URL}/#changes",
-            )
-        )
+        # The scout finds dozens of repositories a day and almost all are
+        # clones or empty. Keep them for one daily digest instead of sending a
+        # message every run.
+        known = set(state["pendingCandidates"])
+        for name in candidates:
+            if name not in known:
+                state["pendingCandidates"].append(name)
+                known.add(name)
+        state["pendingCandidates"] = state["pendingCandidates"][-200:]
 
     seen_dmca = set(state["dmca"])
     for notice in tracker.get("dmca") or []:
@@ -296,6 +301,30 @@ def tracker_messages(state: dict, tracker: dict) -> list[str]:
         state["exeStatus"] = status
 
     return messages
+
+
+def candidate_digest(state: dict) -> str | None:
+    """One short message a day listing what the scout found since yesterday."""
+    msk = datetime.now(timezone.utc) + timedelta(hours=3)
+    today = msk.date().isoformat()
+    if msk.hour < 9 or state.get("digestDate") == today:
+        return None
+    state["digestDate"] = today
+
+    pending = state.get("pendingCandidates") or []
+    if not pending:
+        return None
+    state["pendingCandidates"] = []
+
+    shown = pending[:15]
+    lines = [f"• {esc(name)}" for name in shown]
+    if len(pending) > len(shown):
+        lines.append(f"… и ещё {len(pending) - len(shown)}")
+    return (
+        f"<b>PortWatch: новые кандидаты за сутки ({len(pending)})</b>\n\n"
+        + "\n".join(lines)
+        + f"\n\n{SITE_URL}/#inbox"
+    )
 
 
 def main() -> int:
@@ -338,6 +367,12 @@ def main() -> int:
     if tracker:
         for message in tracker_messages(state, tracker):
             send(message)
+            sent += 1
+            if not DRY_RUN:
+                time.sleep(1.2)
+        digest = candidate_digest(state)
+        if digest:
+            send(digest)
             sent += 1
             if not DRY_RUN:
                 time.sleep(1.2)
