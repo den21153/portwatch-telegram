@@ -45,7 +45,7 @@ if DRY_RUN:
     STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.dryrun.json")
 
 _TRANSLATIONS: dict[str, str] = {}
-_SCOUT_RE = re.compile(r"^Scout spotted (\S+) \(([^,]+), substance (\d+)\)")
+_SCOUT_RE = re.compile(r"^Scout spotted (\S+) \((?:([^,]+), )?substance (\d+)\)")
 _KIND_RU = {"possible effort": "", "tool": "инструмент", "project": "проект"}
 
 
@@ -247,8 +247,10 @@ def tracker_messages(state: dict, tracker: dict) -> list[str]:
         state["changes"].append(key)
         match = _SCOUT_RE.match(text)
         if match:
-            name, kind, score = match.group(1), match.group(2).strip(), match.group(3)
-            label = _KIND_RU.get(kind, translate(kind))
+            name = match.group(1)
+            kind = (match.group(2) or "").strip()
+            score = match.group(3)
+            label = _KIND_RU.get(kind, translate(kind) if kind else "")
             candidates.append(f"{name} ({score})" if not label else f"{name} — {label} ({score})")
         else:
             notices.append(text)
