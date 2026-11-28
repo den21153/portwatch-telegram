@@ -433,5 +433,7 @@
     "https://github.com/github/dmca/blob/master/2026/11/2026-11-24-take-two.md",
     "https://github.com/github/dmca/blob/master/2026/11/2026-11-18-take-two-4.md"
   ],
-  "exeStatus": "released"
+  "exeStatus": "released",
+  "pendingCandidates": [],
+  "digestDate": "2026-11-28"
 }
