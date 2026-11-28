@@ -318,7 +318,12 @@ def candidate_digest(state: dict) -> str | None:
         return None
     state["pendingCandidates"] = []
 
-    shown = pending[:15]
+    def score_of(entry: str) -> int:
+        match = re.search(r"\((\d+)\)$", entry)
+        return int(match.group(1)) if match else 0
+
+    ranked = sorted(pending, key=score_of, reverse=True)
+    shown = ranked[:15]
     lines = [f"• {esc(name)}" for name in shown]
     if len(pending) > len(shown):
         lines.append(f"… и ещё {len(pending) - len(shown)}")
